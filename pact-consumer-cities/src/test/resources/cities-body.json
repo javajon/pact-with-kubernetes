@@ -1,0 +1,142 @@
+[
+  {
+    "id":1024,
+    "name":"Mumbai (Bombay)",
+    "countryCode":"IND",
+    "population":10500000,
+    "district":"Maharashtra"
+  },
+  {
+    "id":2331,
+    "name":"Seoul",
+    "countryCode":"KOR",
+    "population":9981619,
+    "district":"Seoul"
+  },
+  {
+    "id":206,
+    "name":"São Paulo",
+    "countryCode":"BRA",
+    "population":9968485,
+    "district":"São Paulo"
+  },
+  {
+    "id":1890,
+    "name":"Shanghai",
+    "countryCode":"CHN",
+    "population":9696300,
+    "district":"Shanghai"
+  },
+  {
+    "id":939,
+    "name":"Jakarta",
+    "countryCode":"IDN",
+    "population":9604900,
+    "district":"Jakarta Raya"
+  },
+  {
+    "id":2822,
+    "name":"Karachi",
+    "countryCode":"PAK",
+    "population":9269265,
+    "district":"Sindh"
+  },
+  {
+    "id":3357,
+    "name":"Istanbul",
+    "countryCode":"TUR",
+    "population":8787958,
+    "district":"Istanbul"
+  },
+  {
+    "id":2515,
+    "name":"Ciudad de México",
+    "countryCode":"MEX",
+    "population":8591309,
+    "district":"Distrito Federal"
+  },
+  {
+    "id":3580,
+    "name":"Moscow",
+    "countryCode":"RUS",
+    "population":8389200,
+    "district":"Moscow (City)"
+  },
+  {
+    "id":3793,
+    "name":"New York",
+    "countryCode":"USA",
+    "population":8008278,
+    "district":"New York"
+  },
+  {
+    "id":1532,
+    "name":"Tokyo",
+    "countryCode":"JPN",
+    "population":7980230,
+    "district":"Tokyo-to"
+  },
+  {
+    "id":1891,
+    "name":"Peking",
+    "countryCode":"CHN",
+    "population":7472000,
+    "district":"Peking"
+  },
+  {
+    "id":456,
+    "name":"London",
+    "countryCode":"GBR",
+    "population":7285000,
+    "district":"England"
+  },
+  {
+    "id":1025,
+    "name":"Delhi",
+    "countryCode":"IND",
+    "population":7206704,
+    "district":"Delhi"
+  },
+  {
+    "id":608,
+    "name":"Cairo",
+    "countryCode":"EGY",
+    "population":6789479,
+    "district":"Kairo"
+  },
+  {
+    "id":1380,
+    "name":"Teheran",
+    "countryCode":"IRN",
+    "population":6758845,
+    "district":"Teheran"
+  },
+  {
+    "id":2890,
+    "name":"Lima",
+    "countryCode":"PER",
+    "population":6464693,
+    "district":"Lima"
+  },
+  {
+    "id":1892,
+    "name":"Chongqing",
+    "countryCode":"CHN",
+    "population":6351600,
+    "district":"Chongqing"
+  },
+  {
+    "id":3320,
+    "name":"Bangkok",
+    "countryCode":"THA",
+    "population":6320174,
+    "district":"Bangkok"
+  },
+  {
+    "id":2257,
+    "name":"Santafé de Bogotá",
+    "countryCode":"COL",
+    "population":6260862,
+    "district":"Santafé de Bogotá"
+  }
+]

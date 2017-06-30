@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: postgres
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_USER
+          value: postgres
+        image: postgres:9.6-alpine
+        name: postgres
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-claim0
+      restartPolicy: Always
+      volumes:
+      - name: postgres-claim0
+        persistentVolumeClaim:
+          claimName: postgres-claim0

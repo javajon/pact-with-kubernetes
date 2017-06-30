@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{ISO8601} %-5level [%thread{12} %logger{36}] %msg%n"/>
+        </Console>
+
+        <Async name="Async">
+            <AppenderRef ref="Console"/>
+        </Async>
+
+    </Appenders>
+
+    <Loggers>
+        <Root level="all">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,0 +1,137 @@
+/*
+ * A Gradle build to push a Docker image containing 
+ * a H2 Database with the classic world data. More
+ * about the H2 database is here:
+ *
+ * http://www.h2database.com/html/tutorial.html
+ * database.
+ *
+ * Image contents was inspired by a similar container:
+ * https://github.com/similitude/h2-world-docker
+ *
+ * This database is seeded with the World data obtained from:
+ * https://dev.mysql.com/doc/index-other.html
+ *
+ * The microservice leverages
+ * Java 8 compilation, Java 9 Docker container,
+ * SpringBoot, MyBatis.
+ *
+ * Execute task "pushImage" to publish complete container.
+ */
+buildscript {
+    dependencies {
+        classpath 'io.fabric8:kubernetes-client:2.4.1'
+    }
+}
+
+plugins {
+    id 'com.bmuschko.docker-remote-api' version '3.0.8'
+}
+
+group = projectGroup
+version = versionTag
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0'
+}
+
+task clean(type: Delete) {
+    delete 'build/'
+}
+
+
+//
+// Docker
+//
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
+
+docker {
+    url = "http://" + getDockerEngineHost() + ":$dockerHostPort"
+    def certPathText = project.properties.getOrDefault('certPath', System.env.DOCKER_CERT_PATH)
+    if (certPathText != null) {
+        certPath = new File(certPathText)
+    }
+}
+
+String getDockerEngineHost() {
+    DefaultKubernetesClient client = new DefaultKubernetesClient()
+    return client.getMasterUrl().host
+}
+
+String getPrivateRegistryNodePort() {
+    DefaultKubernetesClient client = new DefaultKubernetesClient()
+    return client.services().inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
+}
+
+task copyContainerArtifacts(type: Copy) {
+    description 'Move the data seeding script(s) into the container.'
+    from 'src/sql'
+    into project.file("$buildDir/docker")
+}
+
+task buildDockerFile(type: Dockerfile, group: docker) {
+    description 'Creates a Dockerfile based on the provided instructions.'
+    dependsOn copyContainerArtifacts
+
+    destFile = project.file("$buildDir/docker/Dockerfile")
+
+    from dockerSrcImage
+    maintainer projectVendor
+
+    environmentVariable('H2_HOME', '/usr/h2')
+    environmentVariable('H2_DATA', '/usr/h2-data')
+
+    addFile('world.sql', 'world.sql')
+
+    // Install via apk extra system packages and apply the world data seeding
+    runCommand 'apk add --update curl && ' +
+            'rm -rf /var/cache/apk/* && ' +
+            'curl -o h2.zip http://www.h2database.com/h2-2017-06-10.zip && ' +
+            'unzip h2.zip -d /usr/ && ' +
+            'rm h2.zip && ' +
+            'mkdir -p $H2_DATA && ' +
+            'java -cp $H2_HOME/bin/h2-*.jar ' +
+            'org.h2.tools.RunScript -url jdbc:h2:$H2_DATA/world ' +
+            '-script world.sql'
+
+    // Expose ports.
+    // 8082: H2 Console
+    // 1521: H2 Server
+
+    exposePort 8082, 1521
+
+    entryPoint 'java', '-classpath', '/usr/h2/bin/h2-1.4.196.jar',
+            'org.h2.tools.Server',
+            '-web', '-webAllowOthers', '-webPort', '8082',
+            '-tcp', '-tcpAllowOthers', '-tcpPort', '1521',
+            '-baseDir', '.'
+}
+
+task buildImage(type: DockerBuildImage, group: docker) {
+    description = 'Builds the Docker image for the application.'
+    dependsOn buildDockerFile
+
+    tag = "$dockerImageName"
+    inputDir = buildDockerFile.destFile.parentFile
+}
+
+task tagImage(type: DockerTagImage, group: docker) {
+    description = 'Tags an image in registry.'
+    dependsOn 'buildImage'
+
+    repository = "localhost:" + getPrivateRegistryNodePort() + "/$dockerImageName"
+    tag = 'latest'
+    targetImageId { buildImage.getImageId() }
+}
+
+task pushImage(type: DockerPushImage, group: docker) {
+    description = 'Pushes created Docker image to the repository.'
+    dependsOn tagImage
+
+    imageName = tagImage.repository
+    tag = tagImage.tag
+}

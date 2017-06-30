@@ -1,0 +1,53 @@
+/*
+ * This build file runs the pact contracts against the provider (producer)
+ *
+ * To delete pacts from the Pact Broker run
+ *
+ * To remove items from the pact-broker
+ * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Consumer
+ * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Prodecer
+ */
+buildscript {
+    dependencies {
+        classpath 'io.fabric8:kubernetes-client:2.4.1'
+    }
+}
+
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
+
+plugins {
+    id 'au.com.dius.pact' version '3.5.0'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0'
+}
+
+// See https://github.com/DiUS/pact-jvm/tree/master/pact-jvm-provider-gradle
+pact {
+    // These are to test the contract against the real providers.
+    // You can define as many providers as you need, but each must
+    // have a unique name.
+    serviceProviders {
+
+        largestCitiesProvider {
+            protocol = 'http'
+            host = getClusterHost()
+            port = providerPort
+            hasPactsFromPactBroker("http://" + getClusterHost() + ":$pactBrokerPort/")
+        }
+
+        denverProvider {
+            protocol = 'http'
+            host = getClusterHost()
+            port = providerPort
+
+            hasPactsFromPactBroker("http://" + getClusterHost() + ":$pactBrokerPort/")
+        }
+    }
+}
+
+String getClusterHost() {
+    DefaultKubernetesClient client = new DefaultKubernetesClient()
+    return client.getMasterUrl().host
+}

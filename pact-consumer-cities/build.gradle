@@ -1,0 +1,70 @@
+/*
+ * This build file the Pact consumer side tests.
+ *
+ * To delete pacts from the Pact Broker run
+ *
+ * To remove items from the pact-broker
+ * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Consumer
+ * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Prodecer
+ */
+buildscript {
+    dependencies {
+        classpath 'io.fabric8:kubernetes-client:2.4.1'
+    }
+}
+
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
+
+plugins {
+    id 'java-library'
+    id 'au.com.dius.pact' version '3.5.0'
+}
+
+version = '1.0.0'  // PACTs require SemVer
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0'
+}
+
+// Declare where to find the dependencies of your project
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-web:1.5.4.RELEASE')
+
+    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
+    implementation 'com.google.guava:guava:22.0'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'au.com.dius:pact-jvm-consumer-junit_2.11:3.5.0'
+
+    // Logging - standard SLF4J to Log4J2
+    def log4J2Version = '2.8.2'
+    testCompile "org.apache.logging.log4j:log4j-api:${log4J2Version}"
+    testCompile "org.apache.logging.log4j:log4j-core:${log4J2Version}"
+    testCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4J2Version}"
+}
+
+test {
+    systemProperty 'pact.rootDir', "$buildDir/pacts"
+}
+
+pactPublish.dependsOn test
+
+// See https://github.com/DiUS/pact-jvm/tree/master/pact-jvm-provider-gradle
+pact {
+    publish {
+        pactBrokerUrl = "http://" + getClusterHost() + ":$pactBrokerPort/"
+        pactBrokerUsername = 'pact'
+        pactBrokerPassword = 'pact'
+    }
+}
+
+String getClusterHost() {
+    DefaultKubernetesClient client = new DefaultKubernetesClient()
+    return client.getMasterUrl().host
+}
