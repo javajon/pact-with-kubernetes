@@ -5,6 +5,7 @@ metadata:
   labels:
     io.kompose.service: postgres-claim0
   name: postgres-claim0
+  namespace: pact
 spec:
   accessModes:
   - ReadWriteOnce

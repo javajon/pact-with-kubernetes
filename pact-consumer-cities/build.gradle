@@ -3,9 +3,7 @@
  *
  * To delete pacts from the Pact Broker run
  *
- * To remove items from the pact-broker
- * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Consumer
- * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Prodecer
+ * To remove items from the pact-broker see remove-pact.sh
  */
 buildscript {
     dependencies {

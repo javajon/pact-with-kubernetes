@@ -3,9 +3,7 @@
  *
  * To delete pacts from the Pact Broker run
  *
- * To remove items from the pact-broker
- * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Consumer
- * curl -X DELETE http://$(minikube ip):32033/pacticipants/[*]Prodecer
+ * To remove items from the pact-broker see remove-pact.sh
  */
 buildscript {
     dependencies {
@@ -33,21 +31,37 @@ pact {
         largestCitiesProvider {
             protocol = 'http'
             host = getClusterHost()
-            port = providerPort
-            hasPactsFromPactBroker("http://" + getClusterHost() + ":$pactBrokerPort/")
+            port = getProviderServiceNodePort()
+            hasPactsFromPactBroker(getPactBrokerEndpoint())
         }
 
         denverProvider {
             protocol = 'http'
             host = getClusterHost()
-            port = providerPort
-
-            hasPactsFromPactBroker("http://" + getClusterHost() + ":$pactBrokerPort/")
+            port = getProviderServiceNodePort()
+            hasPactsFromPactBroker(getPactBrokerEndpoint())
         }
     }
 }
 
-String getClusterHost() {
+/** Where the PACT files are stored and retrieved. */
+String getPactBrokerEndpoint() {
+   return "http://" + getClusterHost() + ":" + getPactBrokerServiceNodePort()
+}
+
+/** Location where the actual service runs, ready to accept the PACT for verification. */
+int getProviderServiceNodePort() {
     DefaultKubernetesClient client = new DefaultKubernetesClient()
-    return client.getMasterUrl().host
+    return client.inNamespace('pact').services().withName('ms-cities').get().getSpec().getPorts().nodePort.get(0)
+}
+
+/** Location where the Pact broker is ready to server Pacts from. */
+int getPactBrokerServiceNodePort() {
+    DefaultKubernetesClient client = new DefaultKubernetesClient()
+    return client.inNamespace('pact').services().withName('pact-broker').get().getSpec().getPorts().nodePort.get(0)
+}
+
+/** The IP of the Kubernetes host. */
+String getClusterHost() {
+    return new DefaultKubernetesClient().getMasterUrl().host
 }

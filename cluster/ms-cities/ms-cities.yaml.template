@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ms-cities
+  labels:
+    app: ms-cities
+  namespace: pact
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-cities
+  template:
+    metadata:
+      labels:
+        app: ms-cities
+      name: ms-cities
+    spec:
+      containers:
+      - name: ms-cities
+        image: localhost:${container_port}/ms-cities
+        ports:
+        - containerPort: 9001
+          name: rest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-cities
+  labels:
+    app: ms-cities
+  namespace: pact
+spec:
+  type: NodePort
+  ports:
+  - name: rest
+    port: 9001
+    targetPort: 9001
+    protocol: TCP
+  selector:
+    app: ms-cities

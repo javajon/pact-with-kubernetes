@@ -5,6 +5,7 @@ metadata:
   labels:
     io.kompose.service: pact-broker
   name: pact-broker
+  namespace: pact
 spec:
   replicas: 1
   strategy: {}

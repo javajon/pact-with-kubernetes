@@ -128,9 +128,22 @@ task tagImage(type: DockerTagImage, group: docker) {
     targetImageId { buildImage.getImageId() }
 }
 
+task imageContext(type:Copy, group: docker) {
+    description = 'Inject registry port into the yaml for creating the service.'
+    outputs.upToDateWhen { false }
+    from "../cluster/${projectName}/"
+
+	include "${projectName}.yaml.template"
+    into "../cluster/${projectName}/"
+    rename { it - '.yaml.template' + '.yaml'}
+    expand([
+      container_port: getPrivateRegistryNodePort()
+    ])
+}
+
 task pushImage(type: DockerPushImage, group: docker) {
     description = 'Pushes created Docker image to the repository.'
-    dependsOn tagImage
+	dependsOn imageContext, tagImage
 
     imageName = tagImage.repository
     tag = tagImage.tag

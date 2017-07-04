@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: h2-world-a
-        image: localhost:32101/h2-world-a
+        image: localhost:${container_port}/h2-world-a
         ports:
         - containerPort: 8082
           name: web
