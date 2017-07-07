@@ -97,7 +97,11 @@ The cluster runs on Kubernetes. Here we use the [Minikube solution](https://kube
 
 * Change to the `pact-provider-world` folder
 * Run the provider tests and verify them against the producer running in Kubernetes with `gradlew pactVerify`
-
+* The pack verification for the /city/denver test will fail so modify the ms-world's CityController class's getDenver() method to correct the error
+* Push the corrected ms-cities service with `gradlew pushImage`
+* Remove the existing ms-cities deployment with `kubectl delete deployment ms-cities -n pact`
+* Change to the `cluster` folder and type `kubectl create -f ms-cities` (ignore the service already exists message)
+* Wait minute, then again run the pactVerify and notice both tests now pass.
 
 ## That's It ! ##
 

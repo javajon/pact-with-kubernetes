@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #set -ex
 
 # This project was tested using Minikube v0.20.0 and K8s V1.7.0

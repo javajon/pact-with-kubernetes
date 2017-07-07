@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # 
 # usage ./clean.docker.registry.sh registryUrl login filterString
 #

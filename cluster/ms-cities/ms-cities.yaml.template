@@ -6,7 +6,7 @@ metadata:
     app: ms-cities
   namespace: pact
 spec:
-  replicas: 1
+  replicas: 1  
   selector:
     matchLabels:
       app: ms-cities
@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: ms-cities
-        image: localhost:${container_port}/ms-cities
+        image: localhost:${container_port}/ms-cities:latest
         ports:
         - containerPort: 9001
           name: rest

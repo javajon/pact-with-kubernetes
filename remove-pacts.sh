@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 broker=$(minikube service pact-broker-service --url)
 
