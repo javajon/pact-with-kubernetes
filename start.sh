@@ -25,7 +25,7 @@ kubectl patch service registry --namespace=kube-system --type='json' -p='[{"op":
 
 minikube status
 echo "$(minikube version) is now ready"
-echo "Be sure to now run '. ./init.sh'"
+echo "Be sure to now run '. ./env.sh'"
 
 # Troubleshooting:
 # If Minikube does not start correctly, try `minikube delete`, then remove `~/.minikube/machines/.minkube` directory then run this script again.
