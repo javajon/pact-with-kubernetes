@@ -4,7 +4,8 @@
 # This project was tested using Minikube v0.20.0 and K8s V1.7.0
 
 # Start minikube and ensure security for our demonstration container registry is off
-minikube start --kubernetes-version v1.7.0 --cpus 4 --memory 4096 --insecure-registry '192.168.99.0/24'
+# You may want to adjust the cpu and memory resources to work with your target machine
+minikube start --kubernetes-version v1.7.0 --cpus 4 --memory 8192 --insecure-registry '192.168.99.0/24'
 
 # See https://github.com/kubernetes/minikube/tree/master/deploy/addons
 minikube addons enable registry
@@ -28,4 +29,4 @@ echo "$(minikube version) is now ready"
 echo "Be sure to now run '. ./env.sh'"
 
 # Troubleshooting:
-# If Minikube does not start correctly, try `minikube delete`, then remove `~/.minikube/machines/.minkube` directory then run this script again.
+# If Minikube does not start correctly, try `minikube delete`, then remove `~/.minikube/machines/.minikube` directory then run this script again.

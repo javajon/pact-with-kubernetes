@@ -152,6 +152,6 @@ This project was tested using Minikube v0.20.0 with Kubernetes V1.7.0
 
 * You can suspend Minikube and the entire cluster with `minikube stop`
 * You can also just delete the Kubernetes namespaces with 
-`kubectl namespace pact` 
+`kubectl delete namespace pact` 
 * The easiest way to start fresh is `minikube delete`. This will 
 remove the whole Minikube installation from the virtual machine and can always be recreate with the `start.sh` script.

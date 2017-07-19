@@ -17,6 +17,8 @@ plugins {
     id 'java'
     id 'com.bmuschko.docker-remote-api' version '3.0.8'
     id 'org.springframework.boot' version '1.5.4.RELEASE'
+	
+    id 'org.sonarqube' version '2.5'
 }
 
 group = projectGroup
