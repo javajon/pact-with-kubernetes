@@ -9,15 +9,15 @@
  */
 buildscript {
     dependencies {
-        classpath 'io.fabric8:kubernetes-client:2.4.1'
+        classpath 'io.fabric8:kubernetes-client:2.6.1'
     }
 }
 
 plugins {
     id 'java'
-    id 'com.bmuschko.docker-remote-api' version '3.0.8'
-    id 'org.springframework.boot' version '1.5.4.RELEASE'
-	
+    id 'com.bmuschko.docker-remote-api' version '3.0.12'
+    id 'org.springframework.boot' version '1.5.6.RELEASE'
+
     id 'org.sonarqube' version '2.5'
 }
 
@@ -27,11 +27,11 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.1'
 }
 
 dependencies {
-    def springBootVersion = '1.5.4.RELEASE'
+    def springBootVersion = '1.5.6.RELEASE'
     compile('org.mybatis.spring.boot:mybatis-spring-boot-starter:1.3.0')
     compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
 
@@ -49,8 +49,12 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientException
+
+ext.kubenetesAvailable = true
 
 docker {
+
     url = "http://" + getDockerEngineHost() + ":$dockerHostPort"
     def certPathText = project.properties.getOrDefault('certPath', System.env.DOCKER_CERT_PATH)
     if (certPathText != null) {
@@ -59,14 +63,20 @@ docker {
 }
 
 String getDockerEngineHost() {
-    
-    DefaultKubernetesClient client = new DefaultKubernetesClient()
-    return client.getMasterUrl().host
+    return new DefaultKubernetesClient().getMasterUrl().host
 }
 
 String getPrivateRegistryNodePort() {
-    DefaultKubernetesClient client = new DefaultKubernetesClient()
-    return client.services().inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
+    if (ext.kubenetesAvailable) {
+        try {
+            def services = new DefaultKubernetesClient().services()
+            return services.inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
+        } catch (KubernetesClientException ex) {
+            println "Warning: Kubernetes is not available."
+        }
+    }
+    ext.kubenetesAvailable = false
+    return ''
 }
 
 
@@ -88,7 +98,7 @@ task buildDockerFile(type: Dockerfile, group: 'docker') {
 
     addFile jar.getArchiveName(), jar.getArchiveName()
 
-    entryPoint "java", dockerSpringBootInternalPort, "-jar", jar.getArchiveName()
+    entryPoint 'java', dockerSpringBootInternalPort, '-jar', jar.getArchiveName()
 
     exposePort Integer.parseInt(dockerSpringBootExternalPort)
 }
@@ -105,29 +115,28 @@ task tagImage(type: DockerTagImage, group: docker) {
     description = 'Tags an image in repository.'
     dependsOn 'buildImage'
 
-    repository = "localhost:" + getPrivateRegistryNodePort() + "/$dockerImageName"
+    repository = "localhost:$privateRegistryNodePort/${dockerImageName}"
     tag = 'latest'
     targetImageId { buildImage.getImageId() }
 }
 
-task imageContext(type:Copy, group: docker) {
+task imageContext(type: Copy, group: docker) {
     description = 'Inject registry port into the yaml for creating the service.'
     outputs.upToDateWhen { false }
     from "../cluster/${projectName}/"
 
-	include "${projectName}.yaml.template"
+    include "${projectName}.yaml.template"
     into "../cluster/${projectName}/"
-    rename { it - '.yaml.template' + '.yaml'}
+    rename { it - '.yaml.template' + '.yaml' }
     expand([
-      container_port: getPrivateRegistryNodePort()
+            container_port: getPrivateRegistryNodePort()
     ])
 }
 
 task pushImage(type: DockerPushImage, group: docker) {
     description = 'Pushes created Docker image to the repository.'
-	dependsOn imageContext, tagImage
+    dependsOn imageContext, tagImage
 
     imageName = tagImage.repository
     tag = tagImage.tag
 }
-

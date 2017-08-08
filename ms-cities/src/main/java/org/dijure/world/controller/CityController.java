@@ -68,18 +68,14 @@ public class CityController
 
         if (resource.getProtocol().equals("file"))
         {
-
             return new File(resource.toURI()).lastModified();
-
         } else if (resource.getProtocol().equals("jar"))
         {
-
             String path = resource.getPath();
             return new File(path.substring(5, path.indexOf("!"))).lastModified();
 
         } else
         {
-
             throw new IllegalArgumentException("Unhandled url protocol: " +
                     resource.getProtocol() + " for class: " +
                     getClass().getName() + " resource: " + resource.toString());
