@@ -20,19 +20,19 @@
  */
 buildscript {
     dependencies {
-        classpath 'io.fabric8:kubernetes-client:2.4.1'
+        classpath 'io.fabric8:kubernetes-client:2.6.1'
     }
 }
 
 plugins {
-    id 'com.bmuschko.docker-remote-api' version '3.0.8'
+    id 'com.bmuschko.docker-remote-api' version '3.0.12'
 }
 
 group = projectGroup
 version = versionTag
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.1'
 }
 
 task clean(type: Delete) {
@@ -48,6 +48,9 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientException
+
+ext.kubenetesAvailable = true
 
 docker {
     url = "http://" + getDockerEngineHost() + ":$dockerHostPort"
@@ -58,13 +61,20 @@ docker {
 }
 
 String getDockerEngineHost() {
-    DefaultKubernetesClient client = new DefaultKubernetesClient()
-    return client.getMasterUrl().host
+    return new DefaultKubernetesClient().getMasterUrl().host
 }
 
 String getPrivateRegistryNodePort() {
-    DefaultKubernetesClient client = new DefaultKubernetesClient()
-    return client.services().inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
+    if (ext.kubenetesAvailable) {
+        try {
+            def services = new DefaultKubernetesClient().services()
+            return services.inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
+        } catch (KubernetesClientException ex) {
+            println "Warning: Kubernetes is not available."
+        }
+    }
+    ext.kubenetesAvailable = false
+    return ''
 }
 
 task copyContainerArtifacts(type: Copy) {
