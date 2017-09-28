@@ -1,128 +1,299 @@
 # Pact Testing with Kubernetes #
 
-This project is a collection of a few Gradle based projects and Docker containers that demonstrate Pact testing using Kubernetes. 
+This project is a collection of a few Gradle based projects and Docker containers that 
+demonstrate consumer-driven contract testing using Pact and Kubernetes. 
 
-Highly cohesive and loosely coupled business functions can have a significant impact on your agility to continuously deliver features. Microservices in containers is an effective mechanism for continuous delivery. However, before you bite into that big sandwich, consider how provisioning a variety of data flavors as containerized endpoints could greatly improve your testing.
+Highly cohesive and loosely coupled business functions can have a significant impact 
+on your agility to continuously deliver features. Microservices in containers is an 
+effective mechanism for continuous delivery. However, before you bite into that big 
+sandwich, consider how provisioning a variety of data flavors as containerized endpoints 
+could greatly improve your testing coverage.
 
-How many times have you heard a colleague say, “Well that feature does not have integration tests because it requires a database with some specialized data”? Balderdash - put your data flavors in containers!
+How many times have you heard a colleague say, “Well that feature does not have 
+integration tests because it requires a database with some specialized data”? 
+Balderdash - put your data flavors in containers!
 
-This project explores a solution to create a pipeline of data flavors. We use Docker images, Kubernetes Pods, Minikube to provision these endpoints. See how a Gradle project drives integration tests against these Pod endpoints, all ready for your continuous integration pipeline. In the end, you can see the power of Consumer Driven Contracts against your dataset flavors.
+This project explores a solution to create a pipeline of data flavors. We use Docker 
+images, Kubernetes Pods and Minikube to provision these endpoints. See how a Gradle project 
+drives integration tests against these Pod endpoints, all ready for your continuous 
+integration pipeline. In the end, you can see the power of Consumer Driven Contracts 
+against your dataset flavors.
 
-[Pact](https://docs.pact.io) is a testing tool that guarantees the Consumer Driven Contracts are satisfied by the Provider. A consumer is a client who defines a set of tests that define the contracts, the pacts. Those pacts are documents what is stored in a pact repository. At any time, the writers and tests of the API, the providers, can pull those contracts and run them as tests against their changing API.
+[Pact](https://docs.pact.io) is a testing framework that guarantees the Consumer Driven 
+Contracts are satisfied by the Provider. A consumer is a client who defines a set of 
+tests that define the contracts, the pacts. Those pacts are documents what is stored 
+in a pact repository. At any time, the writers and tests of the API, the providers, 
+can pull those contracts and run them as tests against their changing API.
 
-Empower your team to create their own dataset flavors in containers for developing [Consumer Driven Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html). See a wall to integration testing come down.
+Empower your team to create their own dataset flavors in containers for developing 
+[Consumer Driven Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html). 
+See a wall to integration testing come down.
 
-In this project, you will build and deploy two containers with a Gradle based project, deploy several containers to a Kubernetes cluster and interact with the Pact tools using Gradle based project. 
+In this project, you will build and deploy two containers with a Gradle based project, 
+deploy several containers to a Kubernetes cluster and interact with the Pact tools using 
+Gradle based project. 
 
 | Kubernetes containers           | Gradle based projects                         |
 | ------------------------------- | --------------------------------------------- |
 | Private container registry      | H2 Database seeded with some world statistics |
 | H2 Database                     | Microservice to model the world data          |
-| REST/Json Microservice          | Testing with mocks producing Pacts            |
+| REST/JSON Microservice          | Testing with mocks producing Pacts            |
 | Pact Broker                     | Pact verification                             |
 
 ## Where Do I Start? ##
 
-Start with the tests. The Consumer Driven Contracts is what drives this whole project, so get familiar with those first. Checkout this whole project and start working by running `gradlew test` from the folder `pact-consumer-cities`.
+Start with the tests. The Consumer Driven Contracts is what drives this whole 
+project, so get familiar with those first. Checkout this project and 
+start by running the Gradle task called `test` from the folder `pact-consumer-cities`.
 
-These tests will generate Pact files in the build/pacts directory. The next step is to publish those Pacts to a Pact broker then have a provider consume those tests. The provider and broker will run on a Kubernetes cluster so the next step is to setup the cluster with its containers.
+    Generate Pacts:
+    
+    cd pact-consumer-cities && ./gradlew test && cd .. 
+
+These tests will generate Pact files in the build/pacts directory. The next step 
+is to publish those Pacts to a Pact broker then have a provider consume those 
+Pacts and use them to validate the contact against the live services and data. 
+This service provider and broker will run on a Kubernetes cluster so the next 
+step is to setup the cluster with its containers.
 
   
-## How do I get set up? ##
+## How do I set up the live service provider? ##
 
-The cluster runs on Kubernetes. Here we use the [Minikube solution](https://kubernetes.io/docs/getting-started-guides/minikube/) to set up a simple Kubernetes cluster. You should be able to run this project on Windows, OS X or Linux based on your preferences.
+The cluster runs on Kubernetes. Here we use the 
+[Minikube solution](https://kubernetes.io/docs/getting-started-guides/minikube/) 
+to set up a simple Kubernetes cluster. You may run this project on Windows, 
+OS X or Linux based on your preferences.
 
 
 ### Installs ###
 
-* Install VirtualBox, this is an ideal virtual machine manager for Minikube
-* Install Minikube
-* Install KubeCtl
-* Ensure you have a command prompt that can run Bash scripts, on Windows Git Bash, ConEmu or Cmder can work well.
+Ensure you have a command prompt that can run shell scripts, on Windows Git Bash, ConEmu or 
+Cmder can work well.
+
+#### VirtualBox ####
+
+Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads), as this is an ideal cross platform virtual 
+machine manager tested with Minikube. For any virtualization solution you may need to enable 
+the virtualization BIOS setting. Here is an [article](https://docs.fedoraproject.org/en-US/Fedora/13/html/Virtualization_Guide/sect-Virtualization-Troubleshooting-Enabling_Intel_VT_and_AMD_V_virtualization_hardware_extensions_in_BIOS.html) 
+on enabling Intel VT and AMD-V virtualization hardware extensions in the BIOS.
+
+The chart below offers one-liner shell command that will download the current version of two 
+executables needed to initialize and interact with Minikube and Kubernetes from the command line.
+
+#### Minikube and KubeCtl ####
+
+For Linux or OS X
+
+    curl -Lo minikube https://github.com/kubernetes/minikube/releases/latest && chmod +x minikube && sudo mv minikube /usr/local/bin/
+        
+For Windows with Git Bash (or equivalent Linux shell)
+    
+    curl -Lo minikube.exe https://storage.googleapis.com/minikube/releases/latest/minikube-windows-amd64.exe
+
+
 
 ### Start Kubernetes ###
 
-* In the project directory run the `start.sh` script. Before starting view the script to see what it does
-* Minikube will be running in a few minutes.
-* When its running, source the env.sh file with ". ./env.sh". For each command prompt that interacts with Minikube you must always first source the env.sh script (you can add this sourcing to your .bash_profile)
-* Kubernetes will now be running several support services including a dashboard, a private Docker registry and heapster as a resource monitor.
-* Type `minikube status` to ensure its running.
-* Type `minikube dashboard` to explore its state. Select `pacts` from the namespace dropdown and notice the list is empty.
+Normally Minikube is installed into the virtual machine with just a simple command 
+'minikube start', however for this project there are a few other things needed so 
+all those details are encompassed in this script. Before starting view the script to 
+see what it does. 
+
+    Start Kubernetes
+    
+    ./start.sh
+
+In a few minutes Minikube will be running with a complete Kubernetes cluster and the 
+script will complete. Next, set the environment parameters to allow Minikube and 
+KubeCtl to interact with the new running cluster:
+
+    Initialize environment settings
+    
+    . ./env.sh && minikube status
+
+For each command prompt that interacts with Minikube be sure to always first source this 
+env.sh script (you can add this sourcing to your .bash_profile). Kubernetes will now be 
+running several support services including a dashboard, a private Docker registry and 
+Heapster as a resource monitor. You can run the Kubernetes dashboard  and see these services 
+running in the kube-system namespace.
+
+    Explore Kubernetes
+
+    minikube dashboard
+     
+Select `pacts` from the namespace dropdown and notice the Workload lists are empty. 
+Kubernetes is now ready to start accepting some declarations so it can standup the
+ms-cities and h2 database we require for the Pact verification.
 
 ### Deploy h2-world-a Container ###
 
-* Change to the `h2-world-a` folder in the root of the project
-* Build and deploy the container using `gradlew pushImage`
+    Build and deploy the database
+    
+    cd h2-world-a && ./gradlew pushImage && cd ..
+    
+The database container image is now listed in the private registry running on the cluster.
 
 ### Deploy ms-cities Container ###
 
-* Change to the `ms-cities` folder in the root of the project
-* Build and deploy the container using `gradlew pushImage`
+    Build and deploy the ms-cities container
+    
+    cd ms-cities && ./gradlew pushImage && cd ..
+
+The ms-cities container image is now listed in the private registry running on the cluster.
 
 ### Start Browser for Container Registry ###
 
-* These pushed images are now in the registry, but not running in Kubernetes yet.
-* Change to the `cluster` folder and type `kubectl create -f registry-ui`
-* Shortly, the registry will be browsable by running `minikube service --namespace kube-system registry-ui`
-* In the registry will be the `h2-world-a` and `ms-cities` repositories
+While you just deployed two containers to the registry, it's difficult to see them without a view
+that lists the contents of the registry. Run this command to add an additional service that enables
+a browser based viewer for the registry:
+
+    Start a registry viewer service
+    
+    kubectl create -f cluster/registry-ui
+
+Shortly, based on your machine and network speed the registry will be browsable.
+ 
+    View the registry 
+    
+    minikube service --namespace kube-system registry-ui
+    
+This command will point your browser to the registry listing page and there 
+the `h2-world-a` and `ms-cities` repositories are listed.
 
 ### Start Pact Broker ###
 
-* Change to the `cluster` folder and type `kubectl create -f pact-broker`
-* Shortly, the broker will be browsable by running `minikube service --namespace pact pact-broker`
-* The broker listing will be empty
+The Pact files will need to be deployed to a Pack Broker, so the broker needs to be started.
+
+    Start the Pact Broker Service
+
+    kubectl create -f cluster/pact-broker
+
+Shortly, the broker will be browsable.
+ 
+    View the Pact broker contents
+
+    minikube service --namespace pact pact-broker
+
+The broker listing indicates the broker is responding, but will be empty since the Pacts have 
+not been pushed yet.
 
 ### Start h2-world-a Service ###
-* Change to the `cluster` folder and type `kubectl create -f h2-world-a`
-* In a minute or so verify the deployed database is ready and alive with this command `minikube service --namespace pact h2-world-a`
-* This will open two tabs in your browser, close the second tab as it's the JDBC URL and in the first tab you will see a JDBC web form
-* In the web form connect to the database with this JDBC URL: `jdbc:h2:/usr/h2-data/world`, leave the User Name and Password fields blank.
-* At the subsequent browser page you can explore the world database with standard SQL commands.
+
+While the database container image has been pushed into the registry the database service is not running.
+
+    Start the database
+
+    kubectl create -f cluster/h2-world-a
+
+Shortly the database will be available. The database comes with a browser based SQL viewer. 
+   
+    Explore the database
+    
+    minikube service --namespace pact h2-world-a
+
+This will open two tabs in your browser, close the second tab as it's the JDBC URL and in 
+the first tab you will see a JDBC web form. In the web form connect to the database with 
+this JDBC URL: 
+
+    jdbc:h2:/usr/h2-data/world
+    
+Leave the `User Name` and `Password` fields blank and click the `Connect` button. At the 
+subsequent browser page the world database can be explored with standard SQL commands.
 
 ### Start ms-cities Service ###
-* Change to the `cluster` folder and type `kubectl create -f ms-cities`
-* In a minutes verify the deployed microservice is ready and alive with this command `minikube service --namespace pact ms-cities`
-* This will open a browser tab with the error message `Whitelabel Error Page`. This is expected as the service requires a specific REST call
-* Add to the end of the browser URL `/city/random`, `/city/denver` or `/city/list`
+
+While the ms-cities microservice image has been pushed into the registry the microservice 
+is not running.
+
+    Start the ms-cities service
+    
+    kubectl create -f cluster/ms-cities
+
+Shortly the ms-cities service will be available. 
+
+    Request information from the service
+
+    minikube service --namespace pact ms-cities
+    
+This will open a browser tab with the error message `Whitelabel Error Page`. This is 
+expected as the service requires a specific REST call. Add any of these to the end of 
+the browser URL 
+
+    Relative REST calls for ms-cities
+    
+    /city/random, /city/denver, /city/list or /city/largest
 
 ## How Do I Generate and Verify Pacts? ##
 
 ### Publish Pact Tests ###
 
-* Change to the `pact-consumer-cities` folder
-* Run the consumer tests and publish the pacts with `gradlew pactPublish`
-* Verify the Pacts have been deployed to the broker by viewing the listing with 'minikube service --namespace pact pact-broker'
+The Pact broker listing is currently empty. The Pacts need to be pushed to this broker.
+
+    Push Pacts to Broker
+
+    cd pact-consumer-cities && ./gradlew pactPublish && cd ..
+
+Verify the Pacts have been deployed to the broker by viewing the listing.
+
+    View the Pact broker listings
+
+    minikube service --namespace pact pact-broker
+
 
 ### Verify Pact Tests ###
 
-* Change to the `pact-provider-world` folder
-* Run the provider tests and verify them against the producer running in Kubernetes with `gradlew pactVerify`
-* The pack verification for the /city/denver test will fail so modify the ms-world's CityController class's getDenver() method to correct the error
-* Push the corrected ms-cities service with `gradlew pushImage`
-* Remove the existing ms-cities deployment with `kubectl delete deployment ms-cities -n pact`
-* Change to the `cluster` folder and type `kubectl create -f ms-cities` (ignore the service already exists message)
-* Wait minute, then again run the pactVerify and notice both tests now pass.
+Services are running and the Pacts are deployed so now it's time to Run the provider tests 
+and verify them against the producer running in Kubernetes.
 
+    Verify the Pacts
+    
+    cd pact-provider-world && ./gradlew pactVerify && cd ..
+
+The tests will run and generate the results. **But wait, the test failed!**. You should
+see the error message "Expected 'Denver' but received 'This is wrong'". The pack 
+verification for the /city/denver failed. To fix the problem modify the ms-world's 
+CityController class's getDenver() method to correct the error.
+
+    Rebuild and push the corrected ms-cities microservice
+
+    cd ms-cities && ./gradlew pushImage && cd ..
+
+Force the update of the existing ms-cities pod with
+
+    kubectl delete pod --namespace pact $(kubectl get pod --namespace pact -o=custom-columns=NAME:.metadata.name | grep ms-cities)
+	
+	
+Wait a few seconds, then again run the pactVerify and notice both tests now pass.
+
+    RE-verify the Pacts
+    
+    cd pact-provider-world && ./gradlew pactVerify && cd ..
+
+You should see the output of the verifications ending with "BUILD SUCCESSFUL".
+	
 ## That's It ! ##
 
-You now have performed Pact based tests using Pact, Kubernetes, Microservices and Containers. Notice how you could easily create more databases with different seeds and more services with a variety of Pacts.
+You now have performed Pact based tests using Pact, Kubernetes, Microservices and Containers. 
+Notice how you could create more databases with different seeds, more client tests that generate
+more contacts and more services with a variety of Pacts.
 
 
 ### How can I customize it? ###
 
-There is more data in the database in other tables. 
-You can use the ms-cities as an example microservice and use it 
-to access different data. First look at the database contents 
-and envision a new service to get more data. First write a Pact
-test that describes, from a customer point of view, what should 
-be delivered. Verify the Pact tests run with the mocked service 
-and publish the Pacts. Clone the ms-cities microservice and write 
-your own model that provides the service you have envisioned. Deploy 
-the new service.
-
-This project was tested using Minikube v0.20.0 with Kubernetes V1.7.0
+There is more data in the database in other tables. You can use the ms-cities as an example 
+microservice and use it to access different data. First look at the database contents and 
+envision a new service to get more data. First write a Pact test that describes, from a 
+customer point of view, what should be delivered. Verify the Pact tests run with the mocked 
+service and publish the Pacts. Clone the ms-cities microservice and write your own model that 
+provides the service you have envisioned. Deploy the new service.
 
 ### Credits and References ###
+
+If you have further interest about this project and related topics you can meet me on tour
+with the []No Fluff Just Stuff](www.nofluffjuststuff.com) events. Through any channel, I would 
+appreciate your feedback.
+
+This project was tested using Minikube v0.20.0 with Kubernetes V1.7.0 and VirtualBox 5.1.22
 
 * [VirtualBox](https://www.virtualbox.org/wiki/VirtualBox)
 * [Minikube](https://github.com/kubernetes/minikube)
@@ -150,8 +321,21 @@ This project was tested using Minikube v0.20.0 with Kubernetes V1.7.0
 
 ### How do I shut down? ###
 
-* You can suspend Minikube and the entire cluster with `minikube stop`
-* You can also just delete the Kubernetes namespaces with 
-`kubectl delete namespace pact` 
-* The easiest way to start fresh is `minikube delete`. This will 
-remove the whole Minikube installation from the virtual machine and can always be recreate with the `start.sh` script.
+    Suspend Minikube and the entire cluster
+    
+    minikube stop
+
+or
+
+    Delete the Kubernetes pact namespaces
+    
+    kubectl delete namespace pact
+
+The easiest way to start fresh is to remove the Minikube virtual machine from VirtualBox
+
+    
+    This will remove the whole Minikube installation
+
+    minikube delete
+    
+The Minikube installation can always be recreate with the `start.sh` script.

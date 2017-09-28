@@ -14,5 +14,13 @@ build/
 .classpath
 .project
 
+### NetBeans ###
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
 #Ignore MAC system files
 .DS_Store

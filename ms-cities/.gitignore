@@ -1,6 +1,8 @@
-.gradle
-/build/
-!gradle/wrapper/gradle-wrapper.jar
+# Ensure only the absolutly necessary files are in source control.
+
+# Ignore Gradle output
+.gradle/*
+build/
 
 ### STS ###
 .apt_generated
@@ -16,6 +18,10 @@
 *.iml
 *.ipr
 
+# Eclipse project files
+.classpath
+.project
+
 ### NetBeans ###
 nbproject/private/
 build/
@@ -23,3 +29,6 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+
+#Ignore MAC system files
+.DS_Store

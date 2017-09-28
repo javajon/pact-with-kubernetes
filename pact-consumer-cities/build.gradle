@@ -7,7 +7,7 @@
  */
 buildscript {
     dependencies {
-        classpath 'io.fabric8:kubernetes-client:2.4.1'
+        classpath 'io.fabric8:kubernetes-client:2.6.3'
     }
 }
 
@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 
 plugins {
     id 'java-library'
-    id 'au.com.dius.pact' version '3.5.0'
+    id 'au.com.dius.pact' version '3.5.6'
 }
 
 version = '1.0.0'  // PACTs require SemVer
@@ -23,7 +23,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.2'
 }
 
 // Declare where to find the dependencies of your project
@@ -32,16 +32,16 @@ repositories {
 }
 
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter-web:1.5.4.RELEASE')
+    compile('org.springframework.boot:spring-boot-starter-web:1.5.7.RELEASE')
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:22.0'
 
     testCompile 'junit:junit:4.12'
-    testCompile 'au.com.dius:pact-jvm-consumer-junit_2.11:3.5.0'
+    testCompile 'au.com.dius:pact-jvm-consumer-junit_2.11:3.5.6'
 
     // Logging - standard SLF4J to Log4J2
-    def log4J2Version = '2.8.2'
+    def log4J2Version = '2.9.1'
     testCompile "org.apache.logging.log4j:log4j-api:${log4J2Version}"
     testCompile "org.apache.logging.log4j:log4j-core:${log4J2Version}"
     testCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4J2Version}"

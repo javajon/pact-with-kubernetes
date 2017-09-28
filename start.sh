@@ -1,11 +1,11 @@
 #!/bin/sh
 #set -ex
 
-# This project was tested using Minikube v0.20.0 and K8s V1.7.0
+# This project was tested using Minikube v0.20.2 and K8s V1.7.5
 
 # Start minikube and ensure security for our demonstration container registry is off
 # You may want to adjust the cpu and memory resources to work with your target machine
-minikube start --kubernetes-version v1.7.0 --cpus 4 --memory 8192 --insecure-registry '192.168.99.0/24'
+minikube start --kubernetes-version v1.7.5 --cpus 4 --memory 8192 --insecure-registry '192.168.99.0/24'
 
 # See https://github.com/kubernetes/minikube/tree/master/deploy/addons
 minikube addons enable registry
