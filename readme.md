@@ -42,19 +42,9 @@ Gradle based project.
 
 ## Where Do I Start? ##
 
-Start with the tests. The Consumer Driven Contracts is what drives this whole 
-project, so get familiar with those first. Checkout this project and 
-start by running the Gradle task called `test` from the folder `pact-consumer-cities`.
-
-    Generate Pacts:
-    
-    cd pact-consumer-cities && ./gradlew test && cd .. 
-
-These tests will generate Pact files in the build/pacts directory. The next step 
-is to publish those Pacts to a Pact broker then have a provider consume those 
-Pacts and use them to validate the contact against the live services and data. 
-This service provider and broker will run on a Kubernetes cluster so the next 
-step is to setup the cluster with its containers.
+The consumer tests are a good place to start, but first get the technology stack up 
+and running. The consumer will need to publish the pact and the service provider will
+need to run the pacts.
 
   
 ## How do I set up the live service provider? ##
@@ -125,9 +115,11 @@ Select `pacts` from the namespace dropdown and notice the Workload lists are emp
 Kubernetes is now ready to start accepting some declarations so it can standup the
 ms-cities and h2 database we require for the Pact verification.
 
+## Deploy the Containers ##
+
 ### Deploy h2-world-a Container ###
 
-    Build and deploy the database
+    Build and deploy the database container
     
     cd h2-world-a && ./gradlew pushImage && cd ..
     
@@ -135,16 +127,16 @@ The database container image is now listed in the private registry running on th
 
 ### Deploy ms-cities Container ###
 
-    Build and deploy the ms-cities container
+    Build and deploy the ms-cities microservice container
     
     cd ms-cities && ./gradlew pushImage && cd ..
 
 The ms-cities container image is now listed in the private registry running on the cluster.
 
-### Start Browser for Container Registry ###
+### View Container Registry Contents ###
 
 While you just deployed two containers to the registry, it's difficult to see them without a view
-that lists the contents of the registry. Run this command to add an additional service that enables
+that lists the contents of the registry. Run this command to add a service that enables
 a browser based viewer for the registry:
 
     Start a registry viewer service
