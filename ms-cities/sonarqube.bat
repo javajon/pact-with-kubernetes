@@ -1,0 +1,1 @@
+./gradlew -Dsonar.host.url=$(minikube service sonar --namespace sonar --url)/sonar sonarqube

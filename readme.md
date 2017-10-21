@@ -40,6 +40,9 @@ Gradle based project.
 | REST/JSON Microservice          | Testing with mocks producing Pacts            |
 | Pact Broker                     | Pact verification                             |
 
+The steps below are also captured in a collection of screen shot videos in the file 
+readme-video-examples.zip
+
 ## Where Do I Start? ##
 
 The consumer tests are a good place to start, but first get the technology stack up 
