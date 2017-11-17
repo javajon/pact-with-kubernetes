@@ -1,0 +1,33 @@
+buildscript {
+    apply from: 'gradle/buildscript.gradle', to: buildscript
+}
+
+// Helpful posting: https://www.manthanhd.com/2016/06/26/taking-out-netflixs-gradle-lint-plugin-for-a-spin
+// Helpful talk: https://youtu.be/NTFN_yaEUyw
+apply plugin: 'nebula.lint'
+
+gradleLint {
+    rules = [
+            // 'all-dependency',
+            // 'unused-dependency',
+            'overridden-dependency-version',
+            'duplicate-dependency-class',
+            'all-nebula-renames',
+            'unused-exclude-by-dep',
+            'unused-exclude-by-conf',
+            'dependency-parentheses'
+    ]
+    criticalRules = [
+            'dependency-tuple',
+            //'archaic-wrapper' // todo, submit defect: does not recognize when using property variable
+    ]
+}
+
+// Java linting
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:all" << "-Werror"
+        }
+    }
+}

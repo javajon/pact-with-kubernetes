@@ -1,0 +1,13 @@
+repositories {
+    jcenter()
+    maven {
+        url 'https://plugins.gradle.org/m2/'
+    }
+}
+
+dependencies {
+    classpath 'io.fabric8:kubernetes-client:3.0.3'
+    classpath 'com.bmuschko:gradle-docker-plugin:3.2.0'
+    classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6'
+    classpath 'com.netflix.nebula:gradle-lint-plugin:8.3.1'
+}

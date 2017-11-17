@@ -3,16 +3,13 @@ package org.dijure.world.controller;
 import org.dijure.world.model.City;
 import org.dijure.world.service.CityService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Date;
 
 @RestController
 public class CityController
@@ -66,19 +63,18 @@ public class CityController
                     getClass().getName());
         }
 
-        if (resource.getProtocol().equals("file"))
+        switch (resource.getProtocol())
         {
-            return new File(resource.toURI()).lastModified();
-        } else if (resource.getProtocol().equals("jar"))
-        {
-            String path = resource.getPath();
-            return new File(path.substring(5, path.indexOf("!"))).lastModified();
+            case "file":
+                return new File(resource.toURI()).lastModified();
+            case "jar":
+                String path = resource.getPath();
+                return new File(path.substring(5, path.indexOf("!"))).lastModified();
 
-        } else
-        {
-            throw new IllegalArgumentException("Unhandled url protocol: " +
-                    resource.getProtocol() + " for class: " +
-                    getClass().getName() + " resource: " + resource.toString());
+            default:
+                throw new IllegalArgumentException("Unhandled url protocol: " +
+                        resource.getProtocol() + " for class: " +
+                        getClass().getName() + " resource: " + resource.toString());
         }
     }
 }

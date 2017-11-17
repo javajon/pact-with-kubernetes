@@ -1,0 +1,9 @@
+repositories {
+    jcenter()
+}
+
+dependencies {
+    classpath 'io.fabric8:kubernetes-client:2.6.3'
+    classpath 'com.bmuschko:gradle-docker-plugin:3.2.0'
+    classpath 'com.netflix.nebula:gradle-lint-plugin:8.3.1'
+}

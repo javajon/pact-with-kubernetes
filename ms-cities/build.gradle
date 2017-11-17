@@ -7,18 +7,14 @@
  *
  * Execute task "pushImage" to publish complete microservice
  */
+
 buildscript {
-    dependencies {
-        classpath 'io.fabric8:kubernetes-client:2.6.3'
-    }
+    apply from: 'gradle/buildscript.gradle', to: buildscript
 }
 
 plugins {
     id 'java'
-    id 'com.bmuschko.docker-remote-api' version '3.0.12'
     id 'org.springframework.boot' version '1.5.6.RELEASE'
-
-    id 'org.sonarqube' version '2.5'
 }
 
 group = projectGroup
@@ -27,122 +23,20 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2'
-}
-
-repositories {
-    jcenter()
-    mavenCentral()
+    gradleVersion = wrapperVersion
 }
 
 dependencies {
-    def springBootVersion = '1.5.7.RELEASE'
-    compile('org.mybatis.spring.boot:mybatis-spring-boot-starter:1.3.1')
-    compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+    compile "org.mybatis.spring.boot:mybatis-spring-boot-starter:$myBatisVersion"
+    compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
 
     // H2 Database JDBC Driver
-    compile('com.h2database:h2:1.4.196')
+    runtime "com.h2database:h2:$h2DatabaseVersion"
 
-    testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
-}
-
-//
-// Docker
-//
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
-import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
-import io.fabric8.kubernetes.client.KubernetesClientException
-
-ext.kubenetesAvailable = true
-
-docker {
-
-    url = "http://" + getDockerEngineHost() + ":$dockerHostPort"
-    def certPathText = project.properties.getOrDefault('certPath', System.env.DOCKER_CERT_PATH)
-    if (certPathText != null) {
-        certPath = new File(certPathText)
-    }
-}
-
-String getDockerEngineHost() {
-    return new DefaultKubernetesClient().getMasterUrl().host
+    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 }
 
 
-String getPrivateRegistryNodePort() {
-    if (ext.kubenetesAvailable) {
-        try {
-            def services = new DefaultKubernetesClient().services()
-            return services.inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
-        } catch (KubernetesClientException ex) {
-            println "Warning: Kubernetes is not available."
-        }
-    }
-    ext.kubenetesAvailable = false
-    return ''
-}
-
-
-task copyContainerArtifacts(type: Copy, group: 'docker') {
-    description 'Move the jar into the container.'
-    dependsOn bootRepackage
-    from new File("${buildDir}/libs", jar.getArchiveName())
-    into 'build/docker'
-}
-
-task buildDockerFile(type: Dockerfile, group: 'docker') {
-    description 'Creates a Dockerfile based on the provided instructions.'
-    dependsOn copyContainerArtifacts
-    destFile = project.file('build/docker/Dockerfile')
-
-    from dockerSrcImage
-
-    maintainer projectVendor
-
-    addFile jar.getArchiveName(), jar.getArchiveName()
-
-    entryPoint 'java', dockerSpringBootInternalPort, '-jar', jar.getArchiveName()
-
-    exposePort Integer.parseInt(dockerSpringBootExternalPort)
-}
-
-task buildImage(type: DockerBuildImage, group: docker) {
-    description = 'Builds the Docker image for the application.'
-    dependsOn buildDockerFile
-
-    tag = "$dockerImageName"
-    inputDir = buildDockerFile.destFile.parentFile
-}
-
-task tagImage(type: DockerTagImage, group: docker) {
-    description = 'Tags an image in repository.'
-    dependsOn 'buildImage'
-
-    repository = "localhost:$privateRegistryNodePort/${dockerImageName}"
-    tag = 'latest'
-    targetImageId { buildImage.getImageId() }
-}
-
-task imageContext(type: Copy, group: docker) {
-    description = 'Inject registry port into the yaml for creating the service.'
-    outputs.upToDateWhen { false }
-    from "../cluster/${projectName}/"
-
-    include "${projectName}.yaml.template"
-    into "../cluster/${projectName}/"
-    rename { it - '.yaml.template' + '.yaml' }
-    expand([
-            container_port: getPrivateRegistryNodePort()
-    ])
-}
-
-task pushImage(type: DockerPushImage, group: docker) {
-    description = 'Pushes created Docker image to the repository.'
-    dependsOn imageContext, tagImage
-
-    imageName = tagImage.repository
-    tag = tagImage.tag
-}
+apply from: 'gradle/docker.gradle'
+apply from: 'gradle/sonarqube.gradle'
+apply from: 'gradle/lint.gradle'

@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 
 import javax.sql.DataSource;
 
@@ -25,8 +24,7 @@ public class WorldApplication
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource dataSource()
     {
-        DataSource simpleDriverDataSource = new DriverManagerDataSource();
-        return simpleDriverDataSource;
+        return new DriverManagerDataSource();
     }
 
     @Bean

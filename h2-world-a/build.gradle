@@ -19,142 +19,19 @@
  * Execute task "pushImage" to publish complete container.
  */
 buildscript {
-    dependencies {
-        classpath 'io.fabric8:kubernetes-client:2.6.3'
-    }
-}
-
-plugins {
-    id 'com.bmuschko.docker-remote-api' version '3.1.0'
+    apply from: 'gradle/buildscript.gradle', to: buildscript
 }
 
 group = projectGroup
 version = versionTag
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2'
+    gradleVersion = wrapperVersion
 }
 
 task clean(type: Delete) {
     delete 'build/'
 }
 
-
-//
-// Docker
-//
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.DockerTagImage
-import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
-import io.fabric8.kubernetes.client.KubernetesClientException
-
-ext.kubenetesAvailable = true
-
-docker {
-    url = "http://" + getDockerEngineHost() + ":$dockerHostPort"
-    def certPathText = project.properties.getOrDefault('certPath', System.env.DOCKER_CERT_PATH)
-    if (certPathText != null) {
-        certPath = new File(certPathText)
-    }
-}
-
-String getDockerEngineHost() {
-    return new DefaultKubernetesClient().getMasterUrl().host
-}
-
-String getPrivateRegistryNodePort() {
-    if (ext.kubenetesAvailable) {
-        try {
-            def services = new DefaultKubernetesClient().services()
-            return services.inNamespace("kube-system").withName("registry").get().getSpec().ports.get(0).nodePort
-        } catch (KubernetesClientException ex) {
-            println "Warning: Kubernetes is not available."
-        }
-    }
-    ext.kubenetesAvailable = false
-    return ''
-}
-
-task copyContainerArtifacts(type: Copy) {
-    description 'Move the data seeding script(s) into the container.'
-    from 'src/sql'
-    into project.file("$buildDir/docker")
-}
-
-task buildDockerFile(type: Dockerfile, group: docker) {
-    description 'Creates a Dockerfile based on the provided instructions.'
-    dependsOn copyContainerArtifacts
-
-    destFile = project.file("$buildDir/docker/Dockerfile")
-
-    from dockerSrcImage
-    maintainer projectVendor
-
-    environmentVariable('H2_HOME', '/usr/h2')
-    environmentVariable('H2_DATA', '/usr/h2-data')
-
-    addFile('world.sql', 'world.sql')
-
-    // Install via apk extra system packages and apply the world data seeding
-    runCommand 'apk add --update curl && ' +
-            'rm -rf /var/cache/apk/* && ' +
-            'curl -o h2.zip http://www.h2database.com/h2-2017-06-10.zip && ' +
-            'unzip h2.zip -d /usr/ && ' +
-            'rm h2.zip && ' +
-            'mkdir -p $H2_DATA && ' +
-            'java -cp $H2_HOME/bin/h2-*.jar ' +
-            'org.h2.tools.RunScript -url jdbc:h2:$H2_DATA/world ' +
-            '-script world.sql'
-
-    // Expose ports.
-    // 8082: H2 Console
-    // 1521: H2 Server
-
-    exposePort 8082, 1521
-
-    entryPoint 'java', '-classpath', '/usr/h2/bin/h2-1.4.196.jar',
-            'org.h2.tools.Server',
-            '-web', '-webAllowOthers', '-webPort', '8082',
-            '-tcp', '-tcpAllowOthers', '-tcpPort', '1521',
-            '-baseDir', '.'
-}
-
-task buildImage(type: DockerBuildImage, group: docker) {
-    description = 'Builds the Docker image for the application.'
-    dependsOn buildDockerFile
-
-    tag = "$dockerImageName"
-    inputDir = buildDockerFile.destFile.parentFile
-}
-
-task tagImage(type: DockerTagImage, group: docker) {
-    description = 'Tags an image in registry.'
-    dependsOn 'buildImage'
-
-    repository = "localhost:" + getPrivateRegistryNodePort() + "/$dockerImageName"
-    tag = 'latest'
-    targetImageId { buildImage.getImageId() }
-}
-
-task imageContext(type:Copy, group: docker) {
-    description = 'Inject registry port into the yaml for creating the service.'
-    outputs.upToDateWhen { false }
-    from "../cluster/${projectName}/"
-
-	include "${projectName}.yaml.template"
-    into "../cluster/${projectName}/"
-    rename { it - '.yaml.template' + '.yaml'}
-    expand([
-      container_port: getPrivateRegistryNodePort()
-    ])
-}
-
-task pushImage(type: DockerPushImage, group: docker) {
-    description = 'Pushes created Docker image to the repository.'
-	dependsOn imageContext, tagImage
-
-    imageName = tagImage.repository
-    tag = tagImage.tag
-}
+apply from: 'gradle/docker.gradle'
+apply from: 'gradle/lint.gradle'
