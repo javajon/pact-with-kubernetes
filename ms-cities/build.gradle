@@ -34,9 +34,8 @@ dependencies {
     runtime "com.h2database:h2:$h2DatabaseVersion"
 
     testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+
+    testCompile 'guru.nidi:code-assert:0.8.5'
 }
 
-
 apply from: 'gradle/docker.gradle'
-apply from: 'gradle/sonarqube.gradle'
-apply from: 'gradle/lint.gradle'
